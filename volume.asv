@@ -1,0 +1,17 @@
+D = 10;
+V = 45;
+C = (1/2);
+fun = @vol;
+
+
+function a = vol(h)
+a = (D^3)*(C)*(pi/12)*(3*(h/D)^2 - 2*(h/D)^3);
+end
+
+
+
+
+
+show
+
+
