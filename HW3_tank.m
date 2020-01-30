@@ -23,14 +23,12 @@ for a = 1:10
 end
 disp(height)
 %fplot(height)
+%--------------------------------------
 end
 
 function diam = D(h) %Diameter function as sine function WRT height
 global v_tap g D0 tap_diam h0
-diam = 1.1*D0*sin(h*pi);
-if h == 0 || h == pi
-    diam = D0;
-end
+diam = D0(1 + 0.1*sin((h/h0)*pi));
 end
 
 function height_dt = rate(t,h) %Rate of change for height of water
