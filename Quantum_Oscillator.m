@@ -1,73 +1,51 @@
-function Quantum_Oscillator
+function Quantum_oscill
+% Solve the schrodinger equation for a quantum oscillator
+
 
 % set some parameters
-global a b c d e
-a= 0.1;
-b= 0.01;
-c= 0.1;
-e= 0.2;
+global V0 a hbar m E
+V0= 50;
+a=1.e-11; % m
+hbar=197*1e-9; % hbar-c
+m=0.511*1e6; % eV/c2
+E=413; % eV Energy level
 
-% set initial conditions
 
-rabbit0 = 100;
-fox0 = 10;
-Y0 = [rabbit0; fox0]; % pack the i.c. into a column vector
+% set initial conditions (ie at Xstart)
 
-% testing -- uncomment for simple call to make a plot
-% ode45(@lotka, [0 365], Y0)
-%
-% return
+psi0 = 0;
+psip0 = 1;
+Y0 = [psi0; psip0]; % pack the i.c. into a column vector
 
-% set the time interval for solving
-Tstart=0;
-Tend = 365*2; % 2 years
+% set the space interval for solving  -10a < x < 10a
+Xstart=-10*a;
+Xend = 10*a;
+
 
 % solve the ODE
-[T, X] = ode45(@lotka, [Tstart, Tend], Y0);
-
-% unpack the results. 
-% In the output array X, variables are in each column, with time running down the rows 
-rabbits = X(:,1); % all rows, first column
-foxes = X(:,2); % all rows, second column
+[x, Pout] = ode45(@schrodinger, [Xstart, Xend], Y0);
+psi = Pout(:,1);
 
 % make some nice plots
-figure
 
-% time series
-subplot(2,1,1)
-plot (T,rabbits, T,foxes)
-xlabel('Day')
-ylabel('Population')
-legend('Rabbits', 'Foxes')
-
-% rabbits vs foxes
-subplot(2,1,2)
-plot (rabbits,foxes)
-xlabel('Rabbits')
-ylabel('Foxes')
+plot(x, psi)
+xlim([-5*a,5*a])
 
 end
 
+function rate=schrodinger(x, V)
+% The time-independent Schrodinger Equation
+global V0 a hbar m E
 
-function rate = lotka(t, V)
-% Poulation growth of Rabbits and Foxes
-% Note that rabbits is first column, foxes second
-
-% Prarameters are global, defined in main program
-global a b c d e
-
-% unpack the dependent varables
-rabbits = V(1);
-foxes = V(2);
-
-% a= 0.1*(1 + .5*sin(2*pi*t/365)); % allow annual cycle in rabbit growth
-
-% compute rates for each dependent variable
-dr = a*rabbits - b*rabbits*foxes;
-df = e*b*rabbits*foxes - c*foxes;
-
-% pack rates into a column vector as the output variable
-rate = [dr; df];
-
+% unpack
+    psi = V(1);
+    psip = V(2);
+        
+        
+    % compute rates
+    dpsi = psip;
+    dpsip = -(2*m/hbar^2)*(E - V0*(x^2/a^2))*psi;
+        
+    % pack rates into column vector
+    rate = [dpsi; dpsip];
 end
-
