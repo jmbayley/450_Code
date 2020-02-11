@@ -32,7 +32,7 @@ plot(Tout,x_t,Tout,v_t)
 end
 
 
-function rate = drive_rate(x, T)
+function rate = drive_rate(~, T)
 % The time-independent Schrodinger Equation
 global v0 Thead a b delta s0 lveh Xblock
 
