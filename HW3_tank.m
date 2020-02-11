@@ -36,9 +36,10 @@ global v_tap g D0 tap_diam h0 t0 tend
 height_dt = (-sqrt(g./2).*((tap_diam.^2)./(D(h).^2)).*t + sqrt(h0)).^2;
 end
 
-function depth(t) %Depth of water @ time t using ODE45
+function b = depth(t) %Depth of water @ time t using ODE45
 global v_tap g D0 tap_diam h0 t0 tend
-ode45(@rate, [t0,t], h0);
+[~,hout] = ode45(@rate, [0,t], h0);
+b = hout(end);
 end
 
 function height_difference = height_diff(t) %Height difference between height @ time t and desired depth
