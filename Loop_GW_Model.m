@@ -5,8 +5,9 @@
 %   University of Washington Bothell
 %   Summer of 2019
 function Loop_GW_Model
+%Top Level Function
 
-global n N c L P1 Gu r T fmin fmax
+global n N c L P1 Gu r T fmin fmax nums_array
 % Wave parameters:
 n = 1;  % is the mode
 N = 20;  % maximum number of modes
@@ -18,83 +19,88 @@ r = 1.0;  % Distance from the observer
 T = 1/31536000;  % Integration time
 fmin = 0;
 fmax = 100;
+nums_array = zeros();
 
-end
+
+Ft = calculate_FrequencySpace(fmin, fmax, Gu, r, N, P1, L, T, c, 'Y');
+disp(Ft)
+fillArrayWithIncreasingNums(100);
+disp(nums_array)
+end %top-level function end
 
 
 
 function pn = getPn(n, P1)
 global n P1 
     pn = P1.*n^(-4 / 3);  % magnitude of nth power mode
-end
+end %function end
 
 function omega_n = getWn(n, T, L)
 global n L T 
     omega_n = 2.*pi.*getFn(n, L).*T;  % discrete frequency
-end
-
+end %function end
+ 
 function F_n = getFn(n, L)
 global n c L 
     F_n = (2.*n.*c)./L;  % Physical Frequency
-end
+end %function end
 
-function array_increasing_numbers = fillArrayWithIncreasingNums(arr)
+function fillArrayWithIncreasingNums(arr)
     % Helper Function
-    global n N c L Pl Gu r T fmin fmax
+    global n N c L Pl Gu r T fmin fmax nums_array
     for i = range(length(arr))
-        arr(i) = i;
-    end
-end
+        nums_array(i) = i;
+    end %for end
+end %function end
 
 
-    function GW_signal = getHj(Gu, r, N, J, P1, L, T, c):
-    % Returns Cosmic string Signal
-    global n N c L Pl Gu r T fmin fmax
-    GW_signal = 0 + 0j;
-    % Signal of a cosmic String
+function GW_signal = getHj(Gu, r, N, J, P1, L, T, c)
+% Returns Cosmic string Signal
+global n N c L Pl Gu r T fmin fmax
+GW_signal = 0 + 0j;
+% Signal of a cosmic String
     for n = range(1, 10)
         GW_signal = GW_signal + (((c.*sqrt(getPn(n, P1)))./(pi.*getFn(n, L))).*(Gu / ((c.^2).*r)).*sin((2.*pi.*J.*getWn(n, T, L))./N));
-    end
-    end
+    end %for end
+end %function end
     
-    function fourier = getFourierTransformSum(k, Gu, r, N, P1, L, T, c)
-    % Calcualtes the Fourier Transform of a Gravitational wave caused by a cosmic string
-    % Instead of variable j we use variable J, but consider use of different variable in general!
-    global n N c L Pl Gu r T fmin fmax
-    J = 1
-    Hk = 0 + 0j
-    for J = range(N):
-        Hk = Hk + ((getHj(Gu, r, N, J, P1, L, T, c)) * CM.exp(- 1j * 2 * M.pi * (((J - 1) * (k - 1)) / N)))
-    end
-    end
+function fourier = getFourierTransformSum(k, Gu, r, N, P1, L, T, c)
+% Calcualtes the Fourier Transform of a Gravitational wave caused by a cosmic string
+% Instead of variable j we use variable J, but consider use of different variable in general!
+global n N c L Pl Gu r T fmin fmax
+J = 1;
+fourier = 0 + 0j;
+    for J = range(N)
+        fourier = fourier + ((getHj(Gu, r, N, J, P1, L, T, c)) .*exp(- 1j .* 2 .* pi .* (((J - 1) .* (k - 1)) ./ N)));
+    end %for end
+end %function end
     
 
-    function freq_space = calculate_FrequencySpace(fmin, fmax, Gu, r, N, P1, L, T, c, plot)
+function freq_space = calculate_FrequencySpace(fmin, fmax, Gu, r, N, P1, L, T, c, plot)
+global n N c L Pl Gu r T fmin fmax
+k = fmin;
+% k is the integer value of the Fourier frequency space aka the wave number (-m)
+% k = 2*Pi/Lambda
+k = k + 1;
+fCount = zeros(k);
 
-    k = fmin
-    % k is the integer value of the Fourier frequency space aka the wave number (-m)
-    % k = 2*Pi/Lambda
-    fCount = np.array([k])
+Finitial = (1 ./sqrt(T)) .* getFourierTransformSum(k, Gu, r, N, P1, L, T, c);
+freq_space = (Finitial);
 
-    Finitial = (1 / M.sqrt(T)) * getFourierTransformSum(k, Gu, r, N, P1, L, T, c)
-    Fs = np.array([Finitial])
-    k = k + 1
 
-    for k in range(fmin + 1, fmax):
-        temp = (1 / M.sqrt(T)) * getFourierTransformSum(k, Gu, r, N, P1, L, T, c)
-        Fs = np.append(Fs, temp)
-        fCount = np.append(fCount, k)
+    for k = range(fmin + 1, fmax)
+        temp = (1./sqrt(T)).* getFourierTransformSum(k, Gu, r, N, P1, L, T, c);
+        freq_space = [freq_space(k), temp(k)];
+        fCount = [fCount(k), k];
     
-    if plot == 'Y':
+    if plot == 'Y'
         %multiDomainPlotFromFreq(f, Fs, N)
-        plt.plot(fCount, Fs)
-        plt.title('Frequency domain Signal')
-        plt.xlabel('Frequency Domain number')
-        plt.ylabel('Amplitude')
-        plt.show()
-    return Fs
+        hold on
+        plot(fCount, freq_space)
+        title('Frequency domain Signal')
+        xlabel('Frequency Domain number')
+        ylabel('Amplitude')
+    end %if end
+    end %for end
+end %function end
 
-%==========================================================================
-
-% Main:
-Ft = calculate_FrequencySpace(fmin, fmax, Gu, r, N, P1, L, T, c, 'Y')
